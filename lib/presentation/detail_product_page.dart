@@ -69,50 +69,45 @@ class _DetailProductPageState extends State<DetailProductPage> {
                           controller: priceController,
                           decoration: const InputDecoration(labelText: 'Price'),
                         ),
-                        Container(
-                          alignment: Alignment.bottomCenter,
-                          child: BlocConsumer<UpdateProductBloc,
-                              UpdateProductState>(
-                            listener: (context, state) {
-                              if (state is UpdateProductError) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(
-                                  content: Text(state.message),
-                                  backgroundColor: Colors.red,
-                                  duration: const Duration(seconds: 3),
-                                ));
-                              }
-                              if (state is UpdateProductLoaded) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content:
-                                      Text('Alhamdulillah update berhasil'),
-                                  backgroundColor: Colors.blue,
-                                  duration: Duration(seconds: 3),
-                                ));
-                                Navigator.pop(context);
-                              }
-                            },
-                            builder: (context, state) {
-                              return ElevatedButton(
-                                onPressed: () {
-                                  final updateModel = UpdateProductRequestModel(
-                                      images: List.empty(),
-                                      price: int.parse(
-                                          priceController?.text ?? '0'),
-                                      title: descriptionController?.text ?? '');
-                                  context.read<UpdateProductBloc>().add(
-                                        DoUpdateProductEvent(
-                                          model: updateModel,
-                                          productId: widget.productId,
-                                        ),
-                                      );
-                                },
-                                child: const Text('Submit'),
-                              );
-                            },
-                          ),
-                        ),
+                        BlocConsumer<UpdateProductBloc, UpdateProductState>(
+                          builder: (context, state) {
+                            return ElevatedButton(
+                              onPressed: () {
+                                final updateModel = UpdateProductRequestModel(
+                                    images: List.empty(),
+                                    price:
+                                        int.parse(priceController?.text ?? '0'),
+                                    title: descriptionController?.text ?? '');
+                                context.read<UpdateProductBloc>().add(
+                                      DoUpdateProductEvent(
+                                        model: updateModel,
+                                        productId: widget.productId,
+                                      ),
+                                    );
+                              },
+                              child: const Text('Submit'),
+                            );
+                          },
+                          listener: (context, state) {
+                            if (state is UpdateProductError) {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(state.message),
+                                backgroundColor: Colors.red,
+                                duration: const Duration(seconds: 3),
+                              ));
+                            }
+                            if (state is UpdateProductLoaded) {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text('Alhamdulillah update berhasil'),
+                                backgroundColor: Colors.blue,
+                                duration: Duration(seconds: 3),
+                              ));
+                              Navigator.pop(context);
+                            }
+                          },
+                        )
                       ],
                     );
                   }

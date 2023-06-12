@@ -14,7 +14,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   ) : super(ProductsInitial()) {
     on<GetProductsEvent>((event, emit) async {
       emit(ProductsLoading());
-      final result = await dataSource.getAllProduct();
+      final result = await dataSource.getAllProduct(event.page);
       result.fold(
         (error) => emit(ProductsError(message: error)),
         (result) => emit(ProductsLoaded(data: result)),

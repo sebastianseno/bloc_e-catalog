@@ -4,6 +4,7 @@ import 'package:flutter_ecatalog/bloc/add_product/add_product_bloc.dart';
 import 'package:flutter_ecatalog/bloc/products/products_bloc.dart';
 import 'package:flutter_ecatalog/data/datasources/local_datasource.dart';
 import 'package:flutter_ecatalog/data/models/request/product_request_model.dart';
+import 'package:flutter_ecatalog/data/models/response/product_response_model.dart';
 import 'package:flutter_ecatalog/presentation/detail_product_page.dart';
 import 'package:flutter_ecatalog/presentation/login_page.dart';
 
@@ -18,14 +19,23 @@ class _HomePageState extends State<HomePage> {
   TextEditingController? titleController;
   TextEditingController? priceController;
   TextEditingController? descriptionController;
+  List<ProductResponseModel> products = [];
+  final controller = ScrollController();
+  int page = 0;
 
   @override
   void initState() {
+    super.initState();
     titleController = TextEditingController();
     priceController = TextEditingController();
     descriptionController = TextEditingController();
-    super.initState();
-    context.read<ProductsBloc>().add(GetProductsEvent());
+    context.read<ProductsBloc>().add(GetProductsEvent(page: page));
+    controller.addListener(() {
+      if (controller.position.maxScrollExtent == controller.offset) {
+        page = page + 1;
+        context.read<ProductsBloc>().add(GetProductsEvent(page: page));
+      }
+    });
   }
 
   @override
@@ -39,7 +49,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         title: const Text('Home Page'),
         elevation: 5,
         actions: [
@@ -60,40 +70,39 @@ class _HomePageState extends State<HomePage> {
       body: BlocBuilder<ProductsBloc, ProductsState>(
         builder: (context, state) {
           if (state is ProductsLoaded) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ListView.builder(
-                // reverse: true,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () => {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) {
-                        return DetailProductPage(
-                          productId: state.data[index].id ?? 0,
-                        );
-                      }))
-                    },
-                    child: Card(
-                      child: ListTile(
-                        title: Text(
-                            state.data.reversed.toList()[index].title ?? '-'),
-                        subtitle: Text('${state.data[index].price}\$'),
-                      ),
-                    ),
-                  );
-                },
-                itemCount: state.data.length,
-              ),
-            );
+            products.addAll(state.data);
+            // if (page == 0) {
+            // } else {
+            //   state.data.map(
+            //     (e) => products.add(e),
+            //   );
+            // }
           }
-          return Center(
-            child: ElevatedButton(
-              onPressed: () {
-                context.read<ProductsBloc>().add(GetProductsEvent());
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            // List product
+            child: ListView.builder(
+              controller: controller,
+              // reverse: true,
+              itemBuilder: (context, index) {
+                return InkWell(
+                  onTap: () => {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) {
+                      return DetailProductPage(
+                        productId: products[index].id ?? 0,
+                      );
+                    }))
+                  },
+                  child: Card(
+                    child: ListTile(
+                      title:
+                          Text(products.reversed.toList()[index].title ?? '-'),
+                      subtitle: Text('${products[index].price}\$'),
+                    ),
+                  ),
+                );
               },
-              child: const Text(
-                'Refresh',
-              ),
+              itemCount: products.length,
             ),
           );
         },
@@ -140,7 +149,10 @@ class _HomePageState extends State<HomePage> {
                             const SnackBar(
                                 content: Text('Add Product Success')),
                           );
-                          context.read<ProductsBloc>().add(GetProductsEvent());
+                          page = 0;
+                          context
+                              .read<ProductsBloc>()
+                              .add(GetProductsEvent(page: page));
                           titleController!.clear();
                           priceController!.clear();
                           descriptionController!.clear();
