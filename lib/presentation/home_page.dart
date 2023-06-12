@@ -21,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController? descriptionController;
   List<ProductResponseModel> products = [];
   final controller = ScrollController();
-  int page = 0;
+  int page = 1;
 
   @override
   void initState() {
@@ -70,13 +70,11 @@ class _HomePageState extends State<HomePage> {
       body: BlocBuilder<ProductsBloc, ProductsState>(
         builder: (context, state) {
           if (state is ProductsLoaded) {
-            products.addAll(state.data);
-            // if (page == 0) {
-            // } else {
-            //   state.data.map(
-            //     (e) => products.add(e),
-            //   );
-            // }
+            if (page == 1) {
+              products = state.data;
+            } else {
+              products.addAll(state.data);
+            }
           }
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -96,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                   child: Card(
                     child: ListTile(
                       title:
-                          Text(products.reversed.toList()[index].title ?? '-'),
+                          Text(products[index].title ?? '-'),
                       subtitle: Text('${products[index].price}\$'),
                     ),
                   ),

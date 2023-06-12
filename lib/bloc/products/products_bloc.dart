@@ -12,13 +12,19 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   ProductsBloc(
     this.dataSource,
   ) : super(ProductsInitial()) {
-    on<GetProductsEvent>((event, emit) async {
-      emit(ProductsLoading());
-      final result = await dataSource.getAllProduct(event.page);
-      result.fold(
-        (error) => emit(ProductsError(message: error)),
-        (result) => emit(ProductsLoaded(data: result)),
-      );
-    });
+    on<GetProductsEvent>(
+      (event, emit) async {
+        emit(ProductsLoading());
+        final result = await dataSource.getAllProduct(event.page);
+        result.fold(
+          (error) => emit(
+            ProductsError(message: error),
+          ),
+          (result) {
+                    emit(ProductsLoaded(data: result));
+          },
+        );
+      },
+    );
   }
 }
