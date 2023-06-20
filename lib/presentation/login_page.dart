@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_ecatalog/cubit/login_cubit.dart';
 import 'package:flutter_ecatalog/data/datasources/local_datasource.dart';
 import 'package:flutter_ecatalog/data/models/request/login_request_model.dart';
 import 'package:flutter_ecatalog/presentation/home_page.dart';
 import 'package:flutter_ecatalog/presentation/register_page.dart';
-
-import '../bloc/login/login_bloc.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -74,46 +73,50 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(
               height: 16,
             ),
-            BlocConsumer<LoginBloc, LoginState>(
-              builder: (context, state) {
-                if (state is LoginLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+            BlocConsumer<LoginCubit, LoginState>(builder: (context, state) {
+              return state.maybeWhen(orElse: () {
+              
                 return ElevatedButton(
-                    onPressed: () {
-                      final requestModel = LoginRequestModel(
-                          email: emailController!.text,
-                          password: passwordController!.text);
-                      context.read<LoginBloc>().add(
-                            DoLoginEvent(model: requestModel),
-                          );
-                    },
-                    child: const Text('Login'));
-              },
-              listener: (context, state) {
-                if (state is LoginError) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
-                    duration: const Duration(seconds: 3),
-                  ));
-                }
-
-                if (state is LoginLoaded) {
-                  LocalDataSource().saveToken(state.model.accessToken);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Login Success'),
-                    backgroundColor: Colors.blue,
-                    duration: Duration(seconds: 3),
-                  ));
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return const HomePage();
-                  }));
-                }
-              },
-            ),
+                  onPressed: () {
+                    final requestModel = LoginRequestModel(
+                        email: emailController!.text,
+                        password: passwordController!.text);
+                    context.read<LoginCubit>().doLogin(
+                          requestModel,
+                        );
+                  },
+                  child: const Text(
+                    'Login',
+                  ),
+                );
+              }, loading: () {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              });
+            }, listener: (context, state) {
+              state.maybeWhen(
+                  orElse: () {},
+                  success: (model) {
+                    LocalDataSource().saveToken(model.accessToken);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Login Success'),
+                      backgroundColor: Colors.blue,
+                      duration: Duration(seconds: 3),
+                    ));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return const HomePage();
+                    }));
+                  },
+                  error: (message) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(message),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 3),
+                    ));
+                  });
+            }),
             const SizedBox(
               height: 16,
             ),

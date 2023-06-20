@@ -47,7 +47,7 @@ class AuthDatasource {
           }).timeout(const Duration(seconds: 20));
       return Right(LoginResponseModel.fromJson(response.body));
     } catch (error, _) {
-      return Left('Login Gagal');
+      return const Left('Login Gagal');
     }
   }
 }
